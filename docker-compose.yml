@@ -1,0 +1,48 @@
+version: "3.8"
+services:
+  auth_service:
+    build: ./auth_service
+    ports:
+      - "5001:5001"
+    networks:
+      - webnet
+
+  product_service:
+    build: ./product_service
+    ports:
+      - "5002:5002"
+    environment:
+      - DBHOST=db_service
+      - DBUSER=root
+      - DBPWD=pw
+      - DBPORT=3306
+      - DATABASE=products
+    depends_on:
+      - db_service
+    networks:
+      - webnet
+
+  frontend_service:
+    build: ./frontend_service
+    ports:
+      - "5000:5000"
+    depends_on:
+      - auth_service
+      - product_service
+    networks:
+      - webnet
+
+  db_service:
+    build: ./db_service
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./db_service/mysql.sql:/docker-entrypoint-initdb.d/mysql.sql
+    networks:
+      - webnet
+
+volumes:
+  db_data:
+
+networks:
+  webnet:

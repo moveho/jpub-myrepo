@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>상품 조회</title>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #f0fff4;
+      margin: 0;
+    }
+    .container {
+      max-width: 500px;
+      margin: 100px auto;
+      padding: 40px;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0, 128, 0, 0.05);
+    }
+    h2 {
+      text-align: center;
+      color: #3c8c60;
+      margin-bottom: 24px;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    input, button {
+      padding: 12px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: 1px solid #d4e9dd;
+    }
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>상품 ID로 조회</h2>
+    <form action="/fetchproduct" method="POST">
+      <input type="number" name="prd_id" placeholder="상품 ID 입력" required>
+      <button type="submit">조회하기</button>
+    </form>
+  </div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Product Added</title>
+  <style>
+    body { font-family: 'Inter', sans-serif; background-color: {{ color }}; display: flex; justify-content: center; align-items: center; height: 100vh; }
+    .message { text-align: center; }
+    h1, h2 { color: #30336b; }
+    a { text-decoration: none; color: #555; }
+  </style>
+</head>
+<body>
+  <div class="message">
+    <h1>Product "{{ name }}" added successfully!</h1>
+    <h2>Go back to <a href="{{ url_for('home') }}">Home</a></h2>
+  </div>
+</body>
+</html>
