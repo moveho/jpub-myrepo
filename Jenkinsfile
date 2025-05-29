@@ -6,7 +6,7 @@ pipeline {
     stages {
         stage('Clone') {
             steps {
-                git 'git@github.com:moveho/jpub-myrepo.git', branch: 'main'
+                git url: 'git@github.com:moveho/jpub-myrepo.git', branch: 'main'
             }
         }
         stage('Build Docker Image') {
