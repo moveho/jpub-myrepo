@@ -1,0 +1,200 @@
+친환경 농산물 관리 웹 애플리케이션 (my_prd_app_kevin)
+1. 프로젝트 소개 🚀
+이 프로젝트는 친환경 농산물 상품을 체계적으로 관리하기 위한 웹 애플리케이션입니다
+GitHub
+. 마이크로서비스 아키텍처로 구성되어 있으며, 사용자 인증과 상품 관리 기능을 분리된 서비스로 제공합니다. 웹 프론트엔드에서는 회원가입/로그인 후 농산물 상품을 등록하고 조회할 수 있는 UI를 제공하며, 백엔드의 개별 서비스(API)를 호출하여 데이터를 처리합니다. 전반적으로 Docker 컨테이너 기반으로 서비스가 배포되며, Jenkins CI/CD 파이프라인을 통해 자동 빌드 및 배포 환경도 갖추고 있습니다.
+2. 주요 기술 스택 🛠
+프로그래밍 언어 & 프레임워크: Python 3.8 기반의 Flask 웹 프레임워크를 사용하여 백엔드 마이크로서비스(API 서버)를 구현했습니다
+GitHub
+GitHub
+. 각 서비스는 Flask 애플리케이션으로 구성되며 RESTful API 엔드포인트를 제공합니다.
+데이터베이스: MySQL 8.0 데이터베이스를 사용하여 사용자 및 상품 정보를 저장합니다
+GitHub
+. 프로젝트에 포함된 초기화 스크립트(mysql.sql)를 통해 초기 DB 생성 및 예시 데이터 삽입이 자동으로 이루어집니다.
+컨테이너 & 오케스트레이션: Docker를 이용하여 각 서비스를 컨테이너화하였고, Docker Compose를 통해 여러 컨테이너(인증 서비스, 상품 서비스, 프론트엔드, DB)를 한꺼번에 실행합니다
+GitHub
+. 개발 및 배포 환경 모두 Docker Compose 기반으로 서비스들이 연결됩니다.
+CI/CD: Jenkins를 이용한 CI/CD 파이프라인이 설정되어 있습니다. 저장소에는 Jenkins 파이프라인 정의 파일(Jenkinsfile)이 포함되어 있으며, 코드 변경 시 Jenkins가 저장소를 클론하고 Docker 이미지 빌드 및 컨테이너 구동을 자동화하도록 구성되어 있습니다
+GitHub
+. 또한 jenkins/ 디렉토리의 Dockerfile을 통해 Jenkins 서버 이미지를 커스터마이징하여 Docker 및 Compose 플러그인을 설치합니다
+GitHub
+.
+그 외: 각 서비스별로 필요한 Python 패키지를 명시한 requirements.txt가 포함되어 있으며, 인증/상품 서비스에서는 DB 연동을 위해 pymysql을, 프론트엔드 서비스에서는 HTTP 요청을 위해 requests 라이브러리를 사용합니다
+GitHub
+GitHub
+. 또한 비밀번호 암호화를 위해 cryptography 패키지를 설치하고 있으나, 현재 구현에서는 비밀번호를 해시 없이 저장하고 있어 추후 개선이 가능합니다
+GitHub
+GitHub
+.
+3. 디렉토리 구조 설명 📁
+프로젝트의 전체 디렉토리 구조는 다음과 같습니다:
+auth_service/ - 사용자 인증 서비스 디렉토리입니다. Flask 애플리케이션 app.py가 있으며 /register (회원가입)와 /login (로그인) API 엔드포인트를 제공합니다
+GitHub
+GitHub
+. 이 디렉토리에는 해당 서비스의 Dockerfile과 필요 패키지 목록(requirements.txt)도 포함됩니다.
+product_service/ - 상품 관리 서비스 디렉토리입니다. Flask 애플리케이션 app.py가 있고 /addproduct (상품 등록)와 /getproduct/<id> (상품 조회) API 엔드포인트를 제공합니다
+GitHub
+GitHub
+. 이 디렉토리에도 서비스별 Dockerfile과 requirements.txt가 존재합니다.
+frontend_service/ - 프론트엔드 웹 서비스 디렉토리입니다. Flask 기반의 웹 애플리케이션 app.py가 있으며, 템플릿 렌더링과 다른 서비스 호출을 담당합니다. 이 서비스는 포트 5000에서 동작하며 사용자에게 웹 페이지(UI)를 제공합니다
+GitHub
+. templates/ 폴더에는 HTML 파일들(예: about.html, login.html, register.html, addproduct.html 등)이 있고, static/ 폴더에는 이미지 등의 정적 파일(예: leaf-icon.svg, fruit-icon.svg 등)이 포함되어 있습니다. 프론트엔드 서비스는 내부적으로 인증/상품 서비스의 API를 호출하여 기능을 구현합니다
+GitHub
+GitHub
+.
+db_service/ - 데이터베이스 서비스 디렉토리입니다. MySQL 8 이미지를 기반으로 하는 Dockerfile과 초기 데이터베이스 설정 SQL 스크립트(mysql.sql)가 포함되어 있습니다. mysql.sql 스크립트는 애플리케이션 실행 시 자동으로 실행되어 데이터베이스와 테이블을 생성하고 샘플 데이터를 삽입합니다
+GitHub
+GitHub
+. 이 서비스 컨테이너는 포트 3306(MySQL 기본 포트)으로 외부에 노출됩니다.
+jenkins/ - Jenkins CI 서버를 Docker로 실행하기 위한 설정이 있는 디렉토리입니다. 내부의 Dockerfile은 Jenkins 공식 이미지를 기반으로 Docker CLI와 Docker Compose를 설치하는 내용이 포함되어 있어, Jenkins 컨테이너에서 곧바로 Docker 명령을 실행할 수 있게 합니다
+GitHub
+. CI 서버 설정 및 플러그인 등이 이 이미지 기반으로 구성될 수 있습니다.
+프로젝트 루트 파일들:
+docker-compose.yml – 앞서 언급한 모든 서비스(frontend_service, auth_service, product_service, db_service)를 정의하고 한꺼번에 실행하기 위한 Docker Compose 구성 파일입니다. 각 서비스의 빌드 경로, 포트 매핑, 의존 관계 등이 선언되어 있습니다 (예: 프론트엔드 서비스는 auth/product 서비스가 준비될 때까지 depends_on으로 대기)
+GitHub
+. 또한 DB 서비스에 초기 SQL을 마운트하는 볼륨 설정도 되어 있습니다
+GitHub
+.
+Jenkinsfile – Jenkins 파이프라인 정의 파일로, 코드 변경 시 실행될 단계들을 명시합니다. 예를 들어, 저장소의 main 브랜치를 클론한 후 Docker Compose로 이미지를 빌드하고
+GitHub
+, 배포 단계에서 Compose를 사용해 컨테이너들을 백그라운드 모드로 실행하도록(up -d) 지시합니다
+GitHub
+.
+그 외 프로젝트 설정에 관련된 숨김 파일들이 있을 수 있으나(예: .gitignore 등), 핵심 코드는 위 구조에 모두 포함되어 있습니다.
+4. 설치 및 실행 방법 ⚙️
+4.1 Docker를 이용한 실행 (권장)
+이 프로젝트는 Docker Compose를 사용하여 손쉽게 모든 서비스를 실행할 수 있도록 설계되었습니다. Docker 및 Docker Compose가 설치된 환경에서 다음 절차에 따라 실행합니다:
+환경 설정: .env 파일에 필요한 환경 변수를 설정하거나(선택 사항), 기본값을 사용할 수 있습니다. (예: DB 비밀번호 등 환경 변수는 docker-compose.yml에 기본값이 정의되어 있으며 따로 설정하지 않으면 기본값으로 동작합니다
+GitHub
+.) 자세한 환경 변수 목록은 아래 5. 환경 변수 섹션을 참고하십시오.
+Docker 이미지 빌드: 프로젝트 루트 디렉토리에서 다음 명령을 실행합니다:
+docker-compose build
+이 명령은 각 서비스 디렉토리의 Dockerfile을 참고하여 auth_service, product_service, frontend_service, db_service 각각의 이미지를 빌드합니다.
+컨테이너 실행: 이미지 빌드가 완료되면 아래 명령으로 모든 컨테이너를 실행합니다:
+docker-compose up -d
+-d 플래그는 데몬(백그라운드) 모드로 컨테이너를 실행합니다. 이때 프론트엔드(포트 5000), 인증 서비스(5001), 상품 서비스(5002), DB 서비스(3306) 컨테이너들이 한꺼번에 실행되며 서로 필요한 네트워크로 연결됩니다
+GitHub
+GitHub
+.
+서비스 접속: 웹 브라우저에서 프론트엔드 서비스 접속을 위해 http://localhost:5000 으로 접속합니다. 초기 페이지에서 상품 등록 폼이 나타나며, 회원가입/로그인을 통해 기능을 사용할 수 있습니다. (만약 Docker Desktop 등을 사용 중이라면 localhost 대신 도커 호스트의 IP를 사용해야 할 수도 있습니다.)
+종료: 실행 중인 모든 컨테이너를 중지 및 삭제하려면 docker-compose down 명령을 사용합니다.
+4.2 로컬 환경에서 수동 실행 (선택사항)
+Docker 사용이 어려운 경우, 각 서비스를 로컬 머신에서 직접 실행해볼 수도 있습니다. 이 방법은 개발/테스트 용도로만 권장됩니다:
+사전 준비: Python 3.8 환경과 필요한 패키지를 설치해야 합니다. 각 서비스 디렉토리(auth_service, product_service, frontend_service) 안에서 pip install -r requirements.txt를 실행하여 의존 패키지를 설치합니다. 또한 MySQL 8 데이터베이스 서버를 별도로 설치 및 실행하거나, Docker로 DB만 띄워둬야 합니다.
+DB 설정: 로컬에서 MySQL을 사용할 경우, 프로젝트의 db_service/mysql.sql에 정의된 스키마와 데이터를 수동으로 데이터베이스에 적용해야 합니다. 새로운 데이터베이스 products를 생성하고 해당 SQL 스크립트를 실행하면 테이블과 샘플 데이터가 준비됩니다
+GitHub
+GitHub
+.
+환경 변수 설정: 각 서비스가 데이터베이스에 접속하기 위해 환경 변수로 DB 정보를 받도록 구현되어 있습니다. 기본적으로 DB 호스트는 db_service(Docker 네트워크 내 컨테이너 이름)에 맞춰져 있으므로, 로컬에서 실행 시에는 환경변수 DBHOST를 localhost 등 실제 DB 주소로 지정해야 합니다. 이 밖에도 DBUSER (DB 계정명), DBPWD (DB 비밀번호), DATABASE (DB 이름) 등을 실행 환경에 맞게 설정합니다
+GitHub
+. 편의를 위해 각 서비스 실행 전에 터미널에서 아래와 같이 환경 변수를 설정할 수 있습니다 (예시):
+export DBHOST=localhost  
+export DBUSER=root  
+export DBPWD=pw  
+export DATABASE=products  
+또는 각 서비스 디렉토리에 .env 파일을 만들어 넣어둘 수도 있습니다 (Flask 개발 서버는 .env 파일을 자동 로드하지는 않으므로, 필요 시 Python 코드에서 python-dotenv 등을 활용).
+서비스 실행: 먼저 백엔드 서비스들을 실행합니다. 터미널을 세 개 열어 각각 auth_service, product_service, frontend_service 디렉토리로 이동한 뒤, 다음과 같이 실행합니다:
+python app.py
+각 서비스는 Flask의 개발용 서버로 실행되며, auth_service는 포트 5001, product_service는 5002, frontend_service는 5000으로 각각 구동되도록 설정되어 있습니다
+GitHub
+GitHub
+. 실행 후 콘솔에 Flask가 실행되었다는 로그가 나타나면, 웹 브라우저에서 http://localhost:5000으로 접속해 프론트엔드에 접근합니다.
+주의: 로컬에서 수동 실행 시에는 각 서비스 간 통신을 위해 코드의 서비스 URL을 조정해야 할 수도 있습니다. 현재 프론트엔드 app.py에서는 AUTH_URL과 PRODUCT_URL을 Docker Compose 서비스 이름(auth_service, product_service)으로 사용하고 있으므로
+GitHub
+, 이를 로컬 환경에서는 http://localhost:5001 등으로 변경하거나, hosts 파일에 해당 이름을 로컬루프로 매핑하는 방법을 고려해야 합니다. 기본적으로는 Docker 사용을 권장하며, 로컬 수동 실행은 숙련된 사용자를 위한 옵션입니다.
+5. 환경 변수 또는 설정 방법 🔧
+이 프로젝트에서는 주로 데이터베이스 접속정보를 환경 변수로 다루고 있습니다. Docker Compose 설정파일에 기본 값이 포함되어 있으므로 도커 환경에서는 별도 설정 없이 동작합니다. 그러나 필요에 따라 값을 변경하거나 로컬에서 실행할 경우 적절히 설정해야 합니다:
+DBHOST – DB 호스트명 또는 주소. 기본값은 db_service로 설정되어 있으며, 이는 Docker Compose 네트워크에서 DB 컨테이너의 이름으로 통신하기 위함입니다
+GitHub
+. 로컬에서 실행 시에는 해당 값을 localhost 등으로 바꾸어야 합니다.
+DBUSER – 데이터베이스 사용자명. 기본값은 root
+GitHub
+. MySQL 기본 root 계정을 사용하며, 필요시 별도 계정을 생성해 사용할 수 있습니다.
+DBPWD – 데이터베이스 비밀번호. 기본값은 pw로 설정되어 있습니다
+GitHub
+. 운영 환경에서는 강력한 비밀번호로 변경하고 .env 등을 통해 관리하는 것을 권장합니다.
+DBPORT – 데이터베이스 포트 번호. 기본값은 3306 (MySQL 기본 포트)이며, Docker Compose 환경에서 사용됩니다
+GitHub
+. (코드상에서는 명시적으로 사용되지 않지만, 통신은 기본 포트로 이뤄집니다.)
+DATABASE – 사용할 데이터베이스 이름. 기본값은 products로, 애플리케이션은 이 스키마에 있는 테이블들을 사용합니다
+GitHub
+.
+이 외에도, Flask 앱의 시크릿 키(세션용)가 프론트엔드 코드에 하드코딩되어 있습니다 (frontend_service/app.py에서 app.secret_key = 'frontend_secret'으로 설정
+GitHub
+). 보안상 이 값도 환경 변수로 분리하는 것이 좋지만, 현재 버전에서는 개발 편의를 위해 코드에 직접 지정되어 있습니다. 필요하다면 해당 부분을 수정하여 환경변수에서 값을 읽도록 변경할 수 있습니다.
+6. 개발 및 배포 🖥️🚀
+6.1 개발 (로컬 개발 환경)
+로컬 개발 시에는 앞서 설명한 로컬 수동 실행 방법을 통해 각 서비스를 실행하면서 개발할 수 있습니다. 코드 수정 시 Flask 개발 서버를 재시작하거나, debug=True 옵션을 주어 자동 리로드되도록 설정하면 편리합니다. 프론트엔드의 템플릿이나 정적 파일을 수정하면 새로고침 시 바로 반영됩니다. 데이터베이스 스키마를 변경해야 하는 경우 db_service/mysql.sql 파일을 수정하고, 컨테이너를 재생성하거나 로컬 DB에 수동 반영해야 합니다. 개발 환경에서는 보안을 위해 구현되지 않은 부분(예: 비밀번호 해싱, 입력값 검증 강화 등)을 고려하여 테스트하는 것이 좋습니다. 현재 프로젝트는 교육용/실습용으로 보이며, 최소한의 기능 구현에 초점을 맞추고 있으므로 실제 운영 시에는 코드 개선이 필요합니다. 예를 들어, 비밀번호는 현재 평문으로 저장되는데 이는 보안에 취약하므로 cryptography 등을 활용해 해시 처리하는 개선을 예상해볼 수 있습니다
+GitHub
+.
+6.2 배포 (CI/CD 파이프라인)
+이 프로젝트는 Jenkins를 통해 CI/CD 배포 프로세스를 자동화합니다. Jenkinsfile에 정의된 단계에 따라, 코드가 원격 저장소(main 브랜치)에 푸시되면 Jenkins 서버가 다음 작업을 수행합니다:
+소스 가져오기: Jenkins가 해당 저장소를 clone하여 최신 코드를 가져옵니다
+GitHub
+.
+도커 이미지 빌드: Docker Compose를 사용하여 각 서비스의 이미지를 빌드합니다 (docker compose build). Jenkinsfile에서는 미리 지정된 Compose 파일 경로를 사용하여 빌드 단계가 실행됩니다
+GitHub
+.
+서비스 배포: 이미지 빌드에 성공하면, Docker Compose를 통해 업데이트된 컨테이너들을 실행합니다 (docker compose up -d). Jenkins 파이프라인의 "Deploy" 단계에서 이 작업이 수행되며, 기존 컨테이너를 갱신하거나 없을 경우 새로 생성합니다
+GitHub
+. 이로써 코드 변경사항이 적용된 서비스들이 서버에서 재시작되어 배포가 완료됩니다.
+후처리: 필요에 따라 Jenkins에서 빌드 상태 알림을 보내거나, 사용되지 않는 이미지를 정리하는 등의 후처리를 할 수 있습니다 (해당 Jenkinsfile에는 기본적인 빌드/배포 단계만 명시).
+배포된 서비스들은 Docker Compose로 관리되므로, 서버에서 docker-compose ps 명령으로 실행 상태를 확인하거나 docker-compose logs로 로그를 모니터링할 수 있습니다. 장애 발생 시에는 Jenkins 콘솔 로그를 통해 어떤 단계에서 문제가 있었는지 파악할 수 있으며, 개별 서비스의 로그는 Docker를 통해 확인합니다. 또한 jenkins/ 디렉토리의 Dockerfile을 이용하면 Jenkins 서버 자체를 컨테이너로 구동할 수 있습니다. 이 Dockerfile은 Jenkins 공식 이미지에 Docker CLI와 Compose를 설치하는 내용을 담고 있어, Jenkins 컨테이너에서 바로 Docker 명령을 실행하도록 환경을 갖춥니다
+GitHub
+. 이를 통해 Jenkins는 자체 컨테이너 내에서 곧바로 현재 호스트의 Docker 데몬을 활용하거나, Docker 도커-인-도커(DooD) 방식으로 Compose를 실행할 수 있습니다. (배포 환경에 따라 Jenkins를 VM이나 물리서버에서 운영하면서 해당 Docker를 제어하거나, Kubernetes 등을 활용하는 방식으로 확장 가능합니다.) 정리하면, 개발 단계에서는 Docker Compose를 활용하여 로컬에서 모든 서비스를 구동해 기능을 추가/수정하고 테스트하며, 배포 단계에서는 Jenkins 자동화 파이프라인을 통해 안정적으로 업데이트를 적용하는 형태로 운영됩니다.
+7. 기타 참고 사항 📑
+초기 데이터베이스 구성: db_service/mysql.sql 스クリپ트를 통해 애플리케이션이 처음 기동될 때 자동으로 데이터베이스 및 테이블 생성이 이루어집니다
+GitHub
+. 이 스크립트는 products라는 이름의 데이터베이스를 생성하고, 두 개의 테이블을 설정합니다:
+products 테이블 – 상품 정보를 저장하며 prd_id (자동증가 PK), prd_name (상품명), category (분류), origin_country (원산지), warehouse_location (창고 위치), price (가격), stock (재고), created_at (등록일시) 컬럼을 가집니다
+GitHub
+. 몇 가지 예시 상품 데이터가 함께 INSERT 되어 있습니다
+GitHub
+.
+users 테이블 – 사용자 인증 정보를 저장하며 id (자동증가 PK), username (유니크, 사용자명), password (비밀번호) 컬럼이 있습니다
+GitHub
+. 회원가입 시 평문 비밀번호가 그대로 저장되므로 운영 시에는 이 부분을 개선해야 합니다.
+API 엔드포인트 요약:
+인증 서비스 (auth_service) – 포트 5001에서 동작하며 다음 REST API를 가집니다:
+POST /register – 신규 사용자 회원가입. 요청 바디로 JSON {"username": "...", "password": "..."}를 받아 처리합니다. 성공 시 201 Created와 메시지를 반환하며, 사용자명 중복 등으로 실패 시 오류를 반환합니다
+GitHub
+GitHub
+.
+POST /login – 사용자 로그인. JSON으로 받은 자격 증명을 검증하며, 성공 시 200 OK와 메시지를, 실패 시 401 Unauthorized를 반환합니다
+GitHub
+GitHub
+. (토큰 기반 인증은 아니며, 간단히 요청당 검증하여 상태 메시지만 리턴합니다.)
+상품 서비스 (product_service) – 포트 5002에서 동작하며 다음 API를 가집니다:
+POST /addproduct – 신규 상품 등록. 요청 JSON에 prd_name, category, origin_country, warehouse_location, price, stock 필드를 포함해야 합니다
+GitHub
+. 누락된 필드가 있으면 400 Bad Request를 반환하고, 모든 필드가 있을 경우 DB에 상품을 저장한 후 201 Created를 반환합니다
+GitHub
+GitHub
+.
+GET /getproduct/<prd_id> – 상품 조회. 경로 파라미터로 상품 ID를 받아 해당 상품을 검색합니다. 성공 시 상품 정보를 JSON으로 반환하고, 없으면 404 Not Found를 반환합니다
+GitHub
+GitHub
+.
+프론트엔드 웹 (frontend_service) – 포트 5000에서 동작하며 Flask 템플릿 렌더링을 통해 웹 페이지로 서비스를 제공합니다. 주요 기능으로:
+/ (홈) – 상품 등록 폼 페이지 렌더링
+GitHub
+.
+/about – 서비스 소개 페이지.
+/register & /login – 회원가입 및 로그인 폼 (GET) 및 처리 (POST). 로그인 성공 시 세션에 사용자명을 저장하여 로그인 상태를 관리합니다
+GitHub
+GitHub
+.
+/addproduct (POST) – 상품 등록 폼 제출 처리. 로그인된 사용자만 접근 가능하며, 폼 데이터를 받아 product_service의 /addproduct API를 호출합니다
+GitHub
+GitHub
+. 결과에 따라 성공 페이지 또는 오류 메시지를 보여줍니다.
+/getproduct – 상품 ID 입력 폼 페이지 렌더링.
+/fetchproduct (POST) – 상품 조회 폼 제출 처리. 입력된 ID로 product_service의 /getproduct/<id> API를 호출하고, 결과를 받아 페이지에 출력합니다
+GitHub
+GitHub
+.
+/logout – 로그아웃 (세션 제거 후 홈으로 리다이렉트).
+프론트엔드 서비스는 백엔드 API들을 소비하는 역할로, 실제 데이터 생성/조회 로직은 상품 서비스와 인증 서비스에 위임됩니다. 프론트엔드와 백엔드 간 통신은 내부 Docker 네트워크(hostname으로 서비스 명 사용) 또는 로컬 개발 시에는 localhost 주소를 통해 REST 호출로 이루어집니다.
+테스트: 현재 저장소에는 별도의 테스트 코드 (예: 유닛테스트나 통합테스트)가 포함되어 있지 않습니다. 개발 시 수동으로 각 기능을 테스트해야 합니다. 추후 Flask의 테스트 클라이언트를 이용한 테스트 코드 작성이나 Postman을 활용한 API 테스트 등을 고려해볼 수 있습니다.
+기타 사항: 이 프로젝트는 JPub 출판사의 예제 코드로 추측되며 (Jenkinsfile에 언급된 경로로 보아, 어떤 교재의 Lab 예제인 듯 합니다), 교육 목적으로 마이크로서비스 아키텍처, CI/CD, Docker 활용법 등을 보여주기 위한 통합 예제 프로젝트로 볼 수 있습니다. 따라서 실제 운영환경에 투입하기 전에 보안(예: 비밀번호 해싱, 시크릿 키 관리), 성능(예: 대량의 데이터 처리), 안정성(예: 예외 처리, 로깅 개선) 등을 보완해야 합니다. 하지만 구조적으로 백엔드 서비스 분리, 컨테이너화, CI 파이프라인 구축 등의 모범 사례를 포함하고 있어 학습에 유용한 기반이 됩니다.
+以上の内容을 종합하여, 이 README를 통해 프로젝트의 구조와 작동 방식, 실행 방법을 상세히 이해할 수 있습니다. 각 구성요소를 변경하거나 확장할 때는 해당 부분의 설명을 참고하면 도움이 될 것입니다. 즐거운 개발 되세요! 😊
