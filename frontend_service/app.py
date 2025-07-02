@@ -8,15 +8,13 @@ app.secret_key = 'frontend_secret'
 AUTH_URL = "http://auth_service:5001"
 PRODUCT_URL = "http://product_service:5002"
 
-COLOR = "#C1FF9C"
-
 @app.route("/")
 def home():
-    return render_template("addproduct.html", color=COLOR, user=session.get("user"))
+    return render_template("addproduct.html", user=session.get("user"))
 
 @app.route("/about")
 def about():
-    return render_template("about.html", color=COLOR, user=session.get("user"))
+    return render_template("about.html", user=session.get("user"))
 
 @app.route("/addproduct", methods=["POST"])
 def add_product():
@@ -35,12 +33,12 @@ def add_product():
 
     res = requests.post(f"{PRODUCT_URL}/addproduct", json=data)
     if res.status_code == 201:
-        return render_template("addproductoutput.html", name=data['prd_name'], color=COLOR, user=session.get("user"))
+        return render_template("addproductoutput.html", name=data['prd_name'], user=session.get("user"))
     return res.text, res.status_code
 
 @app.route("/getproduct")
 def get_product():
-    return render_template("getproduct.html", color=COLOR, user=session.get("user"))
+    return render_template("getproduct.html", user=session.get("user"))
 
 @app.route("/fetchproduct", methods=["POST"])
 def fetch_product():
@@ -58,7 +56,7 @@ def fetch_product():
             "stock": raw["stock"],
             "created": raw["created_at"]
         }
-        return render_template("getproductoutput.html", **data, color=COLOR, user=session.get("user"))
+        return render_template("getproductoutput.html", **data, user=session.get("user"))
     else:
         return "상품을 찾을 수 없습니다", 404
 
@@ -73,8 +71,8 @@ def register():
             return redirect(url_for("login"))
         else:
             return res.text, res.status_code
-    return render_template("register.html", color=COLOR, user=session.get("user"))
-
+    return render_template("register.html", user=session.get("user"))
+2
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -87,7 +85,7 @@ def login():
         else:
             flash("로그인 정보가 올바르지 않습니다.")
             return redirect(url_for("login"))
-    return render_template("login.html", color=COLOR, user=session.get("user"))
+    return render_template("login.html", user=session.get("user"))
 
 @app.route("/logout")
 def logout():
